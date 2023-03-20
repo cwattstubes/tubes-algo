@@ -201,7 +201,8 @@ class Questrade(QtAPI):
         return "{0}/accounts/{1}/{2}".format(Questrade.API_VERSION, account_id, function)
 
     def get_candles(self, id, start_time, end_time, interval):
-        endpoint = "{0}/markets/candles/{1}/?startTime={2}&endTime={3}&interval={4}".format(Questrade.API_VERSION, id, start_time, end_time, interval)
+        endpoint = "{0}/markets/candles/{1}?startTime={2}&endTime={3}&interval={4}".format(Questrade.API_VERSION, id, start_time, end_time, interval)
+        print (endpoint)
         return super().api_get(endpoint)
     
     def get_socket(self):
@@ -209,7 +210,7 @@ class Questrade(QtAPI):
         return super().api_get(endpoint)
     
     def get_sockets(self,ids):
-        endpoint = '{0}/markets/quotes?ids={1}&stream=true&mode=WebSocket'.format(Questrade.API_VERSION, ids)
+        endpoint = '{0}/markets/quotes/?ids={1}&stream=true&mode=WebSocket'.format(Questrade.API_VERSION, ids)
         print (endpoint)
         return super().api_get(endpoint)
     
