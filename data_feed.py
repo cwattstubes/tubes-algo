@@ -24,6 +24,7 @@ class DataFeed:
                 self.subscribers.remove(subscriber)
 
     def notify(self, bot_id, data):
+        print(f"Notify called for bot ID: {bot_id}")
         with self.lock:
             for subscriber in self.subscribers:
                 subscriber.process_data(bot_id, data)
@@ -39,6 +40,7 @@ class DataFeed:
             self.qtsymbols[qt_id] = []
         bars = self.qtsymbols[qt_id]
         
+        print("Starting data streaming...")
         while True:
             now = datetime.datetime.now(pytz.timezone("America/New_York"))
             # If there are no bars yet, start at the current time minus one interval
@@ -79,7 +81,7 @@ class DataFeed:
 
             # Sleep until the next interval
             print ("sleeping")
-            sleep (10)
+            sleep (1)
 
     def stop(self):
         # Implement code for stopping data feed subscription
@@ -88,11 +90,12 @@ class DataFeed:
 
 class Subscriber:
     def __init__(self, bot_id):
-        self.bot_id = bot_id
+        self.bot = bot_id
 
     def process_data(self, bot_id, data):
-        if self.bot_id == bot_id:
+        if self.bot.config['bot_id'] == bot_id:
             print( f"Bot ID: {bot_id}, {data}")
+            self.bot.process_data(data)
 """
 df = DataFeed("Test Feed")
 

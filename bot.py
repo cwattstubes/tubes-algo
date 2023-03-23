@@ -10,12 +10,13 @@ db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
 # Bot class invoked by bot_manager.py
 
 class Bot:
-    def __init__(self, config):
+    def __init__(self, config, database):
         self.config = config
         self.strategy = None
         self.broker = None
         self.orders = []
         self.data_feed = None
+        self.database = database
 
     def set_strategy(self, strategy):
         self.strategy = strategy
@@ -47,19 +48,16 @@ class Bot:
     start a bot
     """
     def start(self):
-        # Get bot configuration from database
+        print(f"Starting bot with ID: {self.config['bot_id']}")
+        
+        # Get symbol_id, interval, and bot_id from the bot configuration
+        symbol_id = self.config['symbol_id']
+        interval = 'OneMinute'  # Replace with the desired interval
+        bot_id = self.config['bot_id']
 
-        # Create a Bot object
-        bot = Bot(self.config)
+        # Start the data feed for this bot
+        self.data_feed.start_qt_realtimebars(symbol_id, interval, bot_id, self.process_data)
 
-        # Subscribe to data feed
-        bot.subscribe_to_data_feed(self.data_feed)
-
-        # Start data feed
-        bot.start_data_feed()
-
-        # Start the bot
-        #bot.start()
 
     """
     stop a bot
