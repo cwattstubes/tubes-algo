@@ -102,12 +102,6 @@ sub2 = Subscriber(bot_id='2')
 df.subscribe(sub1)
 df.subscribe(sub2)
 
-# Replace qt_id with a valid Questrade symbol ID and interval with a valid interval in minutes
-#df.start_qt_realtimebars(qt_id='37549', interval='OneMinute', bot_id='1', callback=lambda x: df.notify('1', x))
-#df.start_qt_realtimebars(qt_id='41726', interval='OneMinute', callback=lambda x: df.notify('2', x))
-#print(bleh)
-# Let the data stream for a few minutes
-#sleep (5 * 60)
 
 t1 = threading.Thread(target=df.start_qt_realtimebars, args=('37549', 'OneMinute', '1', lambda x: df.notify('1', x)))
 t2 = threading.Thread(target=df.start_qt_realtimebars, args=('41726', 'OneMinute', '2', lambda x: df.notify('2', x)))
@@ -115,7 +109,7 @@ t2 = threading.Thread(target=df.start_qt_realtimebars, args=('41726', 'OneMinute
 t1.start()
 t2.start()
 # Wait for threads to complete
-#t1.join()
-#t2.join()
+t1.join()
+t2.join()
 # Stop the data feed subscription
 df.stop()
