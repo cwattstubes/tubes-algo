@@ -197,6 +197,13 @@ class Database:
             cur.execute(query, params)
             row = cur.fetchone()
         return row
+    
+    def get_all_bots_active(self):
+        query = "SELECT * FROM bot_config WHERE active = true"
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        return rows
 
 #    def get_config(self, name):
 #        query = "SELECT * FROM config WHERE name = %s"

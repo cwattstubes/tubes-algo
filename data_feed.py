@@ -93,7 +93,7 @@ class Subscriber:
     def process_data(self, bot_id, data):
         if self.bot_id == bot_id:
             print( f"Bot ID: {bot_id}, {data}")
-
+"""
 df = DataFeed("Test Feed")
 
 sub1 = Subscriber(bot_id='1')
@@ -113,3 +113,4 @@ t1.join()
 t2.join()
 # Stop the data feed subscription
 df.stop()
+"""
