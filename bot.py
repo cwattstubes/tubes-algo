@@ -3,9 +3,10 @@ from database import *
 from config import *
 from alphavantage import *
 from data_feed import *
+import threading
 
 # Create a Database object
-db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
+#db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
 
 # Bot class invoked by bot_manager.py
 
@@ -17,6 +18,7 @@ class Bot:
         self.orders = []
         self.data_feed = None
         self.database = database
+        self.stop_event = threading.Event()
 
     def set_strategy(self, strategy):
         self.strategy = strategy
@@ -41,7 +43,7 @@ class Bot:
 
     def process_data(self, data):
         # Do something with the incoming data, using the strategy and broker as needed
-        print (data)
+        #print (f"{self.config['bot_id']} {data}")
         pass
 
     """
@@ -55,16 +57,27 @@ class Bot:
         interval = 'OneMinute'  # Replace with the desired interval
         bot_id = self.config['bot_id']
 
+        # Set the bot status to active in the database
+        self.database.set_bot_status(self.config['bot_id'], 'true')
+        print(f"Started bot with ID: {self.config['bot_id']}")
+
         # Start the data feed for this bot
-        self.data_feed.start_qt_realtimebars(symbol_id, interval, bot_id, self.process_data)
+        self.data_feed.start_qt_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
+        
 
 
     """
     stop a bot
     """
     def stop(self):
-        # Stop the bot
-        #bot.stop()
-        pass
+        print(f"Stopping bot with ID: {self.config['bot_id']}")
+        """
+        Stop the running bot
+        """
+        self.stop_event.set()
+
+        # Set the bot status to inactive in the database
+        self.database.set_bot_status(self.config['bot_id'], 'false')
+        print(f"Stopped bot with ID: {self.config['bot_id']}")
 
 #Bot.start(bot_id='1')

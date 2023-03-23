@@ -218,6 +218,7 @@ class Questrade(QtAPI):
         endpoint = '{0}/symbols/{1}'.format(Questrade.API_VERSION, id)
         return super().api_get(endpoint)
 
+
 #Token(config_id='qt_auth')._refresh()
 #s = TokenStorage.readconfig(config_id='qt_auth')
 #s = Token(config_id='qt_auth').
@@ -229,5 +230,5 @@ class Questrade(QtAPI):
 # Get the time
 #time = QuestradeAPI.get_time()
 #print (time)
-#s = QuestradeAPI.get_symbol(symbol='SU')
+#s = QuestradeAPI.get_symbol(symbol='ENB')
 #print (s)

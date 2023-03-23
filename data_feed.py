@@ -29,7 +29,7 @@ class DataFeed:
             for subscriber in self.subscribers:
                 subscriber.process_data(bot_id, data)
 
-    def start_qt_realtimebars(self, qt_id, interval, bot_id, callback):
+    def start_qt_realtimebars(self, qt_id, interval, bot_id, callback, stop_event):
         """
         Streams real-time bars for a given Questrade symbol ID and interval, invoking the callback function for each new bar.
         """
@@ -41,7 +41,7 @@ class DataFeed:
         bars = self.qtsymbols[qt_id]
         
         print("Starting data streaming...")
-        while True:
+        while True and not stop_event.is_set():
             now = datetime.datetime.now(pytz.timezone("America/New_York"))
             # If there are no bars yet, start at the current time minus one interval
             if not bars:
@@ -80,8 +80,8 @@ class DataFeed:
                     bars.extend(newbars.to_dict('records'))
 
             # Sleep until the next interval
-            print ("sleeping")
-            sleep (1)
+            print (f" {bot_id} sleeping")
+            sleep (5)
 
     def stop(self):
         # Implement code for stopping data feed subscription
@@ -94,7 +94,7 @@ class Subscriber:
 
     def process_data(self, bot_id, data):
         if self.bot.config['bot_id'] == bot_id:
-            print( f"Bot ID: {bot_id}, {data}")
+            #print( f"Bot ID: {bot_id}, {data}")
             self.bot.process_data(data)
 """
 df = DataFeed("Test Feed")
