@@ -4,6 +4,7 @@ from config import *
 from alphavantage import *
 from data_feed import *
 import threading
+import importlib
 
 # Create a Database object
 #db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
@@ -13,12 +14,21 @@ import threading
 class Bot:
     def __init__(self, config, database):
         self.config = config
-        self.strategy = None
+        self.strategy = self.config['strategy_name']
         self.broker = None
         self.orders = []
         self.data_feed = None
         self.database = database
         self.stop_event = threading.Event()
+    
+    def load_strategy(self):
+        module_name = f"strategy.{self.strategy}"
+        try:
+            strategy_module = importlib.import_module(module_name)
+            strategy_class = getattr(strategy_module, self.strategy)
+            self.strategy = strategy_class()
+        except ImportError:
+            print(f"Error loading strategy {self.strategy}")
 
     def set_strategy(self, strategy):
         self.strategy = strategy
@@ -42,6 +52,10 @@ class Bot:
         self.data_feed.subscribe(Subscriber(self.config['bot_id']))
 
     def process_data(self, data):
+        if self.strategy:
+            self.strategy.process_data(data, self.broker, self.database)
+        else:
+            print("No strategy set for this bot")
         # Do something with the incoming data, using the strategy and broker as needed
         #print (f"{self.config['bot_id']} {data}")
         pass
@@ -52,6 +66,7 @@ class Bot:
     def start(self):
         print(f"Starting bot with ID: {self.config['bot_id']}")
         
+        self.load_strategy()
         # Get symbol_id, interval, and bot_id from the bot configuration
         symbol_id = self.config['symbol_id']
         interval = 'OneMinute'  # Replace with the desired interval
