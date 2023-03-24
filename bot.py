@@ -1,7 +1,6 @@
 import questrade as qt
 from database import *
 from config import *
-from alphavantage import *
 from data_feed import *
 import threading
 import importlib
@@ -80,6 +79,12 @@ class Bot:
         interval = 'OneMinute'  # Replace with the desired interval
         bot_id = self.config['bot_id']
 
+        # Get historical data for the symbol and interval
+        historicaldata = self.data_feed.get_qt_historical_data(symbol_id, interval)
+
+        # Pre-process the historical data using the strategy
+        self.strategy.process_historical_data(historicaldata)
+    
         # Set the bot status to active in the database
         self.database.set_bot_status(self.config['bot_id'], 'true')
         print(f"Started bot with ID: {self.config['bot_id']}")

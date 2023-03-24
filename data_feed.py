@@ -29,6 +29,23 @@ class DataFeed:
             for subscriber in self.subscribers:
                 subscriber.process_data(bot_id, data)
 
+    def get_qt_historical_data(self, qt_id, interval):
+        """
+        Grabs historical data for a given Questrade symbol ID and interval.
+        """
+        now = datetime.datetime.now(pytz.timezone("America/New_York"))
+        end_time_str = (now - datetime.timedelta(minutes=2)).strftime('%Y-%m-%dT%H:%M:%S')
+        start_time_str = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+        start_time = start_time_str + '-04:00'  # Append timezone offset
+        end_time = end_time_str + '-04:00'  # Append timezone offset
+
+        # Call _load token to make sure we have a valid access token
+        qt.Token(config_id='qt_auth')._load()
+        QuestradeAPI = qt.Questrade(config_id='qt_auth')
+        data = QuestradeAPI.get_candles(id=qt_id, start_time=start_time, end_time=end_time, interval=interval)
+
+        return data    
+    
     def start_qt_realtimebars(self, qt_id, interval, bot_id, callback, stop_event):
         """
         Streams real-time bars for a given Questrade symbol ID and interval, invoking the callback function for each new bar.
@@ -46,7 +63,7 @@ class DataFeed:
             # If there are no bars yet, start at the current time minus one interval
             if not bars:
                 end_time_str = (now + datetime.timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
-                start_time_str = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+                start_time_str = (now - datetime.timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%S')
                 last_bar_time = (now - datetime.timedelta(minutes=1))
             else:
                 lastbar = bars[-1]
@@ -73,9 +90,9 @@ class DataFeed:
                     newbars = pd.DataFrame(data["candles"])
 
                     # Invoke the callback function for each new bar
-                    for i, row in newbars.iterrows():
-                        callback(row)
-
+                    #for i, row in newbars.iterrows():
+                    #    callback(row)
+                    callback(newbars)
                     # Append the new bars to the existing list
                     bars.extend(newbars.to_dict('records'))
 
