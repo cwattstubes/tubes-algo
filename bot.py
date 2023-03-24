@@ -5,6 +5,9 @@ from alphavantage import *
 from data_feed import *
 import threading
 import importlib
+import sys
+import os
+
 
 # Create a Database object
 #db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
@@ -14,21 +17,26 @@ import importlib
 class Bot:
     def __init__(self, config, database):
         self.config = config
-        self.strategy = self.config['strategy_name']
+        self.strategy_name = self.config['strategy_name']
         self.broker = None
         self.orders = []
         self.data_feed = None
         self.database = database
         self.stop_event = threading.Event()
-    
+        self.load_strategy()
+            
     def load_strategy(self):
-        module_name = f"strategy.{self.strategy}"
+        """
+        Load the strategy module from the strategies folder
+        """
         try:
-            strategy_module = importlib.import_module(module_name)
-            strategy_class = getattr(strategy_module, self.strategy)
-            self.strategy = strategy_class()
-        except ImportError:
-            print(f"Error loading strategy {self.strategy}")
+            strategy_module = importlib.import_module(f"strategies.{self.strategy_name}")
+            strategy_class = getattr(strategy_module, self.strategy_name)
+            self.strategy = strategy_class(self.config)
+        except Exception as e:
+            print(f"Error loading strategy {self.strategy_name}: {e}")
+            self.strategy = None
+
 
     def set_strategy(self, strategy):
         self.strategy = strategy
@@ -53,7 +61,7 @@ class Bot:
 
     def process_data(self, data):
         if self.strategy:
-            self.strategy.process_data(data, self.broker, self.database)
+            self.strategy.process_data(data)
         else:
             print("No strategy set for this bot")
         # Do something with the incoming data, using the strategy and broker as needed
@@ -66,7 +74,7 @@ class Bot:
     def start(self):
         print(f"Starting bot with ID: {self.config['bot_id']}")
         
-        self.load_strategy()
+        #self.load_strategy()
         # Get symbol_id, interval, and bot_id from the bot configuration
         symbol_id = self.config['symbol_id']
         interval = 'OneMinute'  # Replace with the desired interval

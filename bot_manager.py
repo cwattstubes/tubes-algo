@@ -1,3 +1,7 @@
+import os
+import sys
+
+
 from database import Database
 from config import *
 from bot import Bot
@@ -95,8 +99,8 @@ for bot in bot_manager.bots:
 
 sleep (10)
 
-bot_manager.stop_bot(2)
+#bot_manager.stop_bot(1)
 
-sleep (10)
+#sleep (10)
 
-bot_manager.start_bot(3)
+#bot_manager.start_bot(3)
