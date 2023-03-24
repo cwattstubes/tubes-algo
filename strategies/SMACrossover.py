@@ -24,6 +24,11 @@ class SMACrossover(Strategy):
 
         if signal == 'buy':
             self.buy_signal()
+            self.buy_price = self.newbar.iloc[-1].close
+        
+        if signal == 'sell':
+            self.sell_signal()
+         
 
         self.historical_data = pd.concat([self.historical_data, self.newbar], ignore_index=True)
     
@@ -31,10 +36,14 @@ class SMACrossover(Strategy):
         # Calculate signal based on strategy
         lastLow = self.historical_data.iloc[-1].low
         lastClose = self.historical_data.iloc[-1].close
-        if self.newbar.iloc[-1].close > lastClose:
+        
+        if not in_trade and self.newbar.iloc[-1].close > lastClose:
             return 'buy'
         
-        
+        if in_trade:
+            if self.newbar.iloc[-1].close > lastClose:
+                return 'sell'
+
         
 
     def buy_signal(self):
