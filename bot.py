@@ -23,6 +23,7 @@ class Bot:
         self.database = database
         self.stop_event = threading.Event()
         self.load_strategy()
+        self.in_trade = False
             
     def load_strategy(self):
         """
@@ -60,7 +61,7 @@ class Bot:
 
     def process_data(self, data):
         if self.strategy:
-            self.strategy.process_data(data)
+            self.strategy.process_data(data, self.in_trade)
         else:
             print("No strategy set for this bot")
         # Do something with the incoming data, using the strategy and broker as needed
@@ -108,4 +109,4 @@ class Bot:
         self.database.set_bot_status(self.config['bot_id'], 'false')
         print(f"Stopped bot with ID: {self.config['bot_id']}")
 
-#Bot.start(bot_id='1')
+

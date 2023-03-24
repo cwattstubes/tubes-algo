@@ -75,7 +75,7 @@ class DataFeed:
             next_bar_time = last_bar_time + datetime.timedelta(seconds=60)
 
             if now < next_bar_time:
-                print (" now < next bar")
+                #print (" now < next bar")
                 pass
             else:
 

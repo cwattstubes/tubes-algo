@@ -230,5 +230,5 @@ class Questrade(QtAPI):
 # Get the time
 #time = QuestradeAPI.get_time()
 #print (time)
-#s = QuestradeAPI.get_symbol(symbol='ENB')
+#s = QuestradeAPI.get_symbol(symbol='ENB.to')
 #print (s)
