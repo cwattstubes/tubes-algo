@@ -1,21 +1,42 @@
 import questrade as qt
 from database import *
 from config import *
-from alphavantage import *
 from data_feed import *
+import threading
+import importlib
+import sys
+import os
+
 
 # Create a Database object
-db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
+#db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
 
 # Bot class invoked by bot_manager.py
 
 class Bot:
-    def __init__(self, config):
+    def __init__(self, config, database):
         self.config = config
-        self.strategy = None
+        self.strategy_name = self.config['strategy_name']
         self.broker = None
         self.orders = []
         self.data_feed = None
+        self.database = database
+        self.stop_event = threading.Event()
+        self.load_strategy()
+        self.in_trade = False
+            
+    def load_strategy(self):
+        """
+        Load the strategy module from the strategies folder
+        """
+        try:
+            strategy_module = importlib.import_module(f"strategies.{self.strategy_name}")
+            strategy_class = getattr(strategy_module, self.strategy_name)
+            self.strategy = strategy_class(self.config, self)
+        except Exception as e:
+            print(f"Error loading strategy {self.strategy_name}: {e}")
+            self.strategy = None
+
 
     def set_strategy(self, strategy):
         self.strategy = strategy
@@ -23,9 +44,10 @@ class Bot:
     def set_broker(self, broker):
         self.broker = broker
 
-    def place_order(self, order):
+    def place_order(self, order, in_trade):
+        self.in_trade = in_trade
         self.orders.append(order)
-        return self.broker.place_order(order)
+        #return self.broker.place_order(order)
 
     def update_orders(self):
         for order in self.orders:
@@ -39,34 +61,53 @@ class Bot:
         self.data_feed.subscribe(Subscriber(self.config['bot_id']))
 
     def process_data(self, data):
+        if self.strategy:
+            self.strategy.process_data(data, self.in_trade)
+        else:
+            print("No strategy set for this bot")
         # Do something with the incoming data, using the strategy and broker as needed
-        print (data)
+        #print (f"{self.config['bot_id']} {data}")
         pass
 
     """
     start a bot
     """
     def start(self):
-        # Get bot configuration from database
+        print(f"Starting bot with ID: {self.config['bot_id']}")
+        
+        #self.load_strategy()
+        # Get symbol_id, interval, and bot_id from the bot configuration
+        symbol_id = self.config['symbol_id']
+        interval = 'OneMinute'  # Replace with the desired interval
+        bot_id = self.config['bot_id']
 
-        # Create a Bot object
-        bot = Bot(self.config)
+        # Get historical data for the symbol and interval
+        historicaldata = self.data_feed.get_qt_historical_data(symbol_id, interval)
 
-        # Subscribe to data feed
-        bot.subscribe_to_data_feed(self.data_feed)
+        # Pre-process the historical data using the strategy
+        self.strategy.process_historical_data(historicaldata)
+    
+        # Set the bot status to active in the database
+        self.database.set_bot_status(self.config['bot_id'], 'true')
+        print(f"Started bot with ID: {self.config['bot_id']}")
 
-        # Start data feed
-        bot.start_data_feed()
+        # Start the data feed for this bot
+        self.data_feed.start_qt_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
+        
 
-        # Start the bot
-        #bot.start()
 
     """
     stop a bot
     """
     def stop(self):
-        # Stop the bot
-        #bot.stop()
-        pass
+        print(f"Stopping bot with ID: {self.config['bot_id']}")
+        """
+        Stop the running bot
+        """
+        self.stop_event.set()
 
-#Bot.start(bot_id='1')
+        # Set the bot status to inactive in the database
+        self.database.set_bot_status(self.config['bot_id'], 'false')
+        print(f"Stopped bot with ID: {self.config['bot_id']}")
+
+

@@ -58,8 +58,8 @@ def search_qt_symbol(string):
     return results
 
 
-s = search_qt_symbol(string='su')
-print (s)
+#s = search_qt_symbol(string='su')
+#print (s)
 
 #for i in range(1, 11):
 #    update_company_info_from_av(id=i)

@@ -24,11 +24,29 @@ class DataFeed:
                 self.subscribers.remove(subscriber)
 
     def notify(self, bot_id, data):
+        print(f"Notify called for bot ID: {bot_id}")
         with self.lock:
             for subscriber in self.subscribers:
                 subscriber.process_data(bot_id, data)
 
-    def start_qt_realtimebars(self, qt_id, interval, bot_id, callback):
+    def get_qt_historical_data(self, qt_id, interval):
+        """
+        Grabs historical data for a given Questrade symbol ID and interval.
+        """
+        now = datetime.datetime.now(pytz.timezone("America/New_York"))
+        end_time_str = (now - datetime.timedelta(minutes=2)).strftime('%Y-%m-%dT%H:%M:%S')
+        start_time_str = (now - datetime.timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%S')
+        start_time = start_time_str + '-04:00'  # Append timezone offset
+        end_time = end_time_str + '-04:00'  # Append timezone offset
+
+        # Call _load token to make sure we have a valid access token
+        qt.Token(config_id='qt_auth')._load()
+        QuestradeAPI = qt.Questrade(config_id='qt_auth')
+        data = QuestradeAPI.get_candles(id=qt_id, start_time=start_time, end_time=end_time, interval=interval)
+
+        return data    
+    
+    def start_qt_realtimebars(self, qt_id, interval, bot_id, callback, stop_event):
         """
         Streams real-time bars for a given Questrade symbol ID and interval, invoking the callback function for each new bar.
         """
@@ -39,12 +57,13 @@ class DataFeed:
             self.qtsymbols[qt_id] = []
         bars = self.qtsymbols[qt_id]
         
-        while True:
+        print("Starting data streaming...")
+        while True and not stop_event.is_set():
             now = datetime.datetime.now(pytz.timezone("America/New_York"))
             # If there are no bars yet, start at the current time minus one interval
             if not bars:
                 end_time_str = (now + datetime.timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%S')
-                start_time_str = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+                start_time_str = (now - datetime.timedelta(minutes=1)).strftime('%Y-%m-%dT%H:%M:%S')
                 last_bar_time = (now - datetime.timedelta(minutes=1))
             else:
                 lastbar = bars[-1]
@@ -56,7 +75,7 @@ class DataFeed:
             next_bar_time = last_bar_time + datetime.timedelta(seconds=60)
 
             if now < next_bar_time:
-                print (" now < next bar")
+                #print (" now < next bar")
                 pass
             else:
 
@@ -67,19 +86,21 @@ class DataFeed:
                 qt.Token(config_id='qt_auth')._load()
                 QuestradeAPI = qt.Questrade(config_id='qt_auth')
                 data = QuestradeAPI.get_candles(id=qt_id, start_time=start_time, end_time=end_time, interval=interval)
-                if "candles" in data:
+                if "candles" in data and data["candles"]:
                     newbars = pd.DataFrame(data["candles"])
 
                     # Invoke the callback function for each new bar
-                    for i, row in newbars.iterrows():
-                        callback(row)
-
+                    #for i, row in newbars.iterrows():
+                    #    callback(row)
+                    callback(newbars)
                     # Append the new bars to the existing list
                     bars.extend(newbars.to_dict('records'))
-
+                else:
+                    print("No data returned")   
+                    sleep (60)
             # Sleep until the next interval
-            print ("sleeping")
-            sleep (10)
+            print (f" {bot_id} sleeping")
+            sleep (5)
 
     def stop(self):
         # Implement code for stopping data feed subscription
@@ -88,11 +109,12 @@ class DataFeed:
 
 class Subscriber:
     def __init__(self, bot_id):
-        self.bot_id = bot_id
+        self.bot = bot_id
 
     def process_data(self, bot_id, data):
-        if self.bot_id == bot_id:
-            print( f"Bot ID: {bot_id}, {data}")
+        if self.bot.config['bot_id'] == bot_id:
+            #print( f"Bot ID: {bot_id}, {data}")
+            self.bot.process_data(data)
 """
 df = DataFeed("Test Feed")
 

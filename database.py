@@ -91,7 +91,9 @@ class DatabaseAdmin:
             strategy_name TEXT,
             symbol_id INT,
             account_id TEXT,
-            broker_name TEXT
+            broker_name TEXT,
+            active BOOLEAN DEFAULT FALSE,
+            autostart BOOLEAN DEFAULT FALSE
         );
         """
         with self.conn.cursor() as cur:
@@ -198,12 +200,25 @@ class Database:
             row = cur.fetchone()
         return row
     
-    def get_all_bots_active(self):
-        query = "SELECT * FROM bot_config WHERE active = true"
+    def get_bots_autostart(self):
+        query = "SELECT * FROM bot_config WHERE autostart = true"
         with self.conn.cursor() as cur:
             cur.execute(query)
             rows = cur.fetchall()
         return rows
+    
+    def set_bot_status(self, bot_id, status):
+        query = "UPDATE bot_config SET active = %s WHERE bot_id = %s"
+        params = (status, bot_id)
+        self.execute_update(query, *params)
+
+    def get_bot_status(self, bot_id):
+        query = "SELECT active FROM bot_config WHERE bot_id = %s"
+        params = (bot_id,)
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            row = cur.fetchone()
+        return row
 
 #    def get_config(self, name):
 #        query = "SELECT * FROM config WHERE name = %s"
