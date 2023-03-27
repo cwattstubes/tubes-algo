@@ -32,7 +32,7 @@ class Bot:
         try:
             strategy_module = importlib.import_module(f"strategies.{self.strategy_name}")
             strategy_class = getattr(strategy_module, self.strategy_name)
-            self.strategy = strategy_class(self.config)
+            self.strategy = strategy_class(self.config, self)
         except Exception as e:
             print(f"Error loading strategy {self.strategy_name}: {e}")
             self.strategy = None
@@ -44,9 +44,10 @@ class Bot:
     def set_broker(self, broker):
         self.broker = broker
 
-    def place_order(self, order):
+    def place_order(self, order, in_trade):
+        self.in_trade = in_trade
         self.orders.append(order)
-        return self.broker.place_order(order)
+        #return self.broker.place_order(order)
 
     def update_orders(self):
         for order in self.orders:

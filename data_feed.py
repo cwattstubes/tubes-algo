@@ -35,7 +35,7 @@ class DataFeed:
         """
         now = datetime.datetime.now(pytz.timezone("America/New_York"))
         end_time_str = (now - datetime.timedelta(minutes=2)).strftime('%Y-%m-%dT%H:%M:%S')
-        start_time_str = (now - datetime.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M:%S')
+        start_time_str = (now - datetime.timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%S')
         start_time = start_time_str + '-04:00'  # Append timezone offset
         end_time = end_time_str + '-04:00'  # Append timezone offset
 
@@ -86,7 +86,7 @@ class DataFeed:
                 qt.Token(config_id='qt_auth')._load()
                 QuestradeAPI = qt.Questrade(config_id='qt_auth')
                 data = QuestradeAPI.get_candles(id=qt_id, start_time=start_time, end_time=end_time, interval=interval)
-                if "candles" in data:
+                if "candles" in data and data["candles"]:
                     newbars = pd.DataFrame(data["candles"])
 
                     # Invoke the callback function for each new bar
@@ -95,7 +95,9 @@ class DataFeed:
                     callback(newbars)
                     # Append the new bars to the existing list
                     bars.extend(newbars.to_dict('records'))
-
+                else:
+                    print("No data returned")   
+                    sleep (60)
             # Sleep until the next interval
             print (f" {bot_id} sleeping")
             sleep (5)

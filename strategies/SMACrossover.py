@@ -4,13 +4,14 @@ import numpy as np
 import ta
 
 class SMACrossover(Strategy):
-    def __init__(self, config):
+    def __init__(self, config, bot):
         super().__init__(config)
         self.short_window = config.get('short_window', 10)
         self.long_window = config.get('long_window', 30)
         self.prices = []
         self.buy_price = None
         self.historical_data = pd.DataFrame()
+        self.bot = bot
 
     def process_historical_data(self, data):
         self.historical_data = pd.DataFrame(data['candles'])
@@ -40,7 +41,7 @@ class SMACrossover(Strategy):
         if not in_trade and self.newbar.iloc[-1].close > lastClose:
             return 'buy'
         
-        if in_trade:
+        elif in_trade:
             if self.newbar.iloc[-1].close > lastClose:
                 return 'sell'
 
@@ -48,6 +49,8 @@ class SMACrossover(Strategy):
 
     def buy_signal(self):
         print(f"{self.config['bot_name']} Buy signal")
+        self.bot.place_order('buy', True)
 
     def sell_signal(self):
         print(f"{self.config['bot_name']} Sell signal")
+        self.bot.place_order('sell', False)
