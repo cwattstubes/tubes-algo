@@ -4,6 +4,7 @@ from config import *
 from data_feed import *
 import threading
 import importlib
+import asyncio
 import sys
 import os
 
@@ -36,7 +37,6 @@ class Bot:
         except Exception as e:
             print(f"Error loading strategy {self.strategy_name}: {e}")
             self.strategy = None
-
 
     def set_strategy(self, strategy):
         self.strategy = strategy
@@ -80,10 +80,18 @@ class Bot:
         symbol_id = self.config['symbol_id']
         interval = 'OneMinute'  # Replace with the desired interval
         bot_id = self.config['bot_id']
+        broker = self.config['broker_name']
 
+        asyncio.set_event_loop(asyncio.new_event_loop())
         # Get historical data for the symbol and interval
-        historicaldata = self.data_feed.get_qt_historical_data(symbol_id, interval)
 
+        if broker == 'qt':
+            historicaldata = self.data_feed.get_qt_historical_data(symbol_id, interval)
+
+        elif broker == 'ib':
+            historicaldata = self.data_feed.get_ib_historical_data(symbol_id, interval)
+
+        print (historicaldata)
         # Pre-process the historical data using the strategy
         self.strategy.process_historical_data(historicaldata)
     
@@ -92,8 +100,11 @@ class Bot:
         print(f"Started bot with ID: {self.config['bot_id']}")
 
         # Start the data feed for this bot
-        self.data_feed.start_qt_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
+        if broker == 'qt':
+            self.data_feed.start_qt_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
         
+        elif broker == 'ib':
+            self.data_feed.start_ib_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
 
 
     """

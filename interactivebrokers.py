@@ -13,17 +13,18 @@ class InteractiveBrokers:
         contract = Stock(symbol, 'SMART', 'USD')
 
         self.ib.qualifyContracts(contract)
-        total_seconds = int((end_date - start_date).total_seconds())
+        total_days = (end_date - start_date).days
 
         bars = self.ib.reqHistoricalData(
             contract,
             endDateTime=end_date,
-            durationStr='{} S'.format(total_seconds),
+            durationStr='{} D'.format(total_days),
             barSizeSetting='1 min',
             whatToShow='TRADES',
             useRTH=True
         )
         return util.df(bars)
+        #return bars
 
     def fetch_historical_crypto_data(self, symbol, start_date, end_date):
         contract = Crypto(symbol, 'PAXOS', 'USD')
@@ -34,7 +35,7 @@ class InteractiveBrokers:
         bars = self.ib.reqHistoricalData(
             contract,
             endDateTime=end_date,
-            durationStr='{} S'.format(total_seconds),
+            durationStr='{} D'.format(total_seconds),
             barSizeSetting='1 min',
             whatToShow='AGGTRADES',
             useRTH=True
@@ -44,16 +45,22 @@ class InteractiveBrokers:
 
     def fetch_realtime_bars(self, symbol, start_date, end_date):
         contract = Stock(symbol, 'SMART', 'USD')
+
         self.ib.qualifyContracts(contract)
+        total_min = int((end_date - start_date).total_seconds())
+        print (total_min)
+        print (end_date)
         bars = self.ib.reqHistoricalData(
             contract,
             endDateTime=end_date,
-            durationStr='{} D'.format((end_date - start_date).days),
+            durationStr='{} S'.format(total_min),
             barSizeSetting='1 min',
             whatToShow='TRADES',
-            useRTH=True
+            useRTH=True,
+            keepUpToDate=False
         )
         return util.df(bars)
+
     
     def fetch_realtime_crypto_bars(self, symbol, start_date, end_date):
         contract = Crypto(symbol, 'PAXOS', 'USD')

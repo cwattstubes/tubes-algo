@@ -14,13 +14,14 @@ class SMACrossover(Strategy):
         self.bot = bot
 
     def process_historical_data(self, data):
-        self.historical_data = pd.DataFrame(data['candles'])
+        #self.historical_data = pd.DataFrame(data['candles'])
+        self.historical_data = data
         self.closes = self.historical_data['close']
         return self.historical_data
 
     def process_data(self, data, in_trade):
         self.newbar = pd.DataFrame(data)
-        #print (self.newbar)
+        print (self.newbar)
         signal = self.calculate_signal(self.historical_data, self.newbar, in_trade)
 
         if signal == 'buy':

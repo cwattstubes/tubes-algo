@@ -8,12 +8,17 @@ import pytz
 import asyncio
 
 class DataFeed:
+
     def __init__(self, name):
         self.name = name
         self.subscribers = []
         self.lock = threading.Lock()
         self.symbols = {}
-
+        self.ibconfig = {
+            'host': '127.0.0.1',    
+            'port': 7497,
+            'client_id': 1
+        }
 
     def subscribe(self, subscriber):
         with self.lock:
@@ -44,8 +49,8 @@ class DataFeed:
         # Call _load token to make sure we have a valid access token
         qt.Token(config_id='qt_auth')._load()
         QuestradeAPI = qt.Questrade(config_id='qt_auth')
-        data = QuestradeAPI.get_candles(id=qt_id, start_time=start_time, end_time=end_time, interval=interval)
-
+        qt_data = QuestradeAPI.get_candles(id=qt_id, start_time=start_time, end_time=end_time, interval=interval)
+        data = pd.DataFrame(qt_data['candles'])
         return data    
     
     def start_qt_realtimebars(self, qt_id, interval, bot_id, callback, stop_event):
@@ -110,7 +115,7 @@ class DataFeed:
         Grabs historical data for a given Interactive Brokers symbol and interval.
         """
         now = datetime.datetime.now(pytz.timezone("America/New_York"))
-        end_time = now - datetime.timedelta(minutes=2)
+        end_time = now 
         start_time = now - datetime.timedelta(days=7)
         
         # Convert interval format to Interactive Brokers format
@@ -125,9 +130,10 @@ class DataFeed:
         else:
             raise ValueError("Unsupported interval")
 
-        ib = InteractiveBrokers(config)
-        data = ib.fetch_historical_data(symbol, start_time, end_time, ib_interval)
-        
+        ib = InteractiveBrokers(self.ibconfig)
+        data = ib.fetch_historical_data(symbol, start_time, end_time)
+        ib.disconnect()
+
         return data
 
     def start_ib_realtimebars(self, symbol, interval, bot_id, callback, stop_event):
@@ -146,7 +152,7 @@ class DataFeed:
 
         print("Starting data streaming...")
         while True and not stop_event.is_set():
-            now = datetime.datetime.now(pytz.timezone("America/New_York"))
+            now = datetime.datetime.now(pytz.timezone("America/New_York")).replace(microsecond=0)
 
             # Convert interval format to Interactive Brokers format
             if interval == "OneMinute":
@@ -160,37 +166,51 @@ class DataFeed:
             else:
                 raise ValueError("Unsupported interval")
 
-            start_time = now - datetime.timedelta(minutes=1)
-            end_time = now
-            #start_time = start_time.strftime("%Y-%m-%d %H:%M:%S%z")
-            #end_time = end_time.strftime("%Y-%m-%d %H:%M:%S%z")
-
-            print (f" {bot_id} start time: {start_time} end time: {end_time}")
-            config = {
-                'host': '127.0.0.1',    
-                'port': 7497,
-                'client_id': 1
-            }
-            ib = InteractiveBrokers(config)
-            data = ib.fetch_historical_data(symbol, start_time, end_time)
-            
-            if not data.empty:
-                newbars = data
-
-                # Invoke the callback function for each new bar
-                #for i, row in newbars.iterrows():
-                #    callback(row)
-                callback(newbars)
-
-                # Append the new bars to the existing list
-                bars.extend(newbars.to_dict('records'))
+            # If there are no bars yet, start at the current time minus one interval
+            if not bars:
+                #end_time = now + datetime.timedelta(hours=1)
+                end_time = now - datetime.timedelta(seconds=now.second)
+                start_time = now - datetime.timedelta(minutes=1)
+                last_bar_time = now - datetime.timedelta(minutes=1)
+                print ("AAAA")
             else:
-                print("No data returned")
-                sleep(60)
+                lastbar = bars[-1]
+                last_candle = datetime.datetime.fromisoformat(str(lastbar['date']))
+                start_time = last_candle
+                end_time = last_candle + datetime.timedelta(minutes=1)
+                #last_bar_time = last_candle
+                print (f"last bar time {last_bar_time}")
+
+            next_bar_time = last_bar_time + datetime.timedelta(seconds=60)
+            #print (f"next bar time {next_bar_time}")
+            #print (f"now {now}")
+            if now < next_bar_time:
+                pass
+            else:
+                print(f"{bot_id} fetching data from {start_time} to {end_time}")
+
+                # Call IB to get the new bars
+                ib = InteractiveBrokers(self.ibconfig)
+                data = ib.fetch_realtime_bars(symbol, start_time, end_time)
+                ib.disconnect()
+                if not data.empty:
+                    newbars = data
+
+                    # Invoke the callback function for each new bar
+                    callback(newbars)
+
+                    # Append the new bars to the existing list
+                    bars.extend(newbars.to_dict('records'))
+
+                    last_bar_time = newbars.iloc[-1]['date']
+                else:
+                    print("No data returned")
+                    sleep(60)
 
             # Sleep until the next interval
-            print(f" {bot_id} sleeping")
+            print(f"{bot_id} sleeping")
             sleep(5)
+
 
     def stop(self):
         # Implement code for stopping data feed subscription
