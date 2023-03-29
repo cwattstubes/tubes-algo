@@ -17,7 +17,7 @@ class Bot:
     def __init__(self, config, database):
         self.config = config
         self.strategy_name = self.config['strategy_name']
-        self.broker = None
+        self.broker = self.config['broker_name']
         self.orders = []
         self.data_feed = None
         self.database = database
