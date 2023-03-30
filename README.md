@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unified Broker</title>
+    <title>Algo Trader</title>
 </head>
 <body>
-    <h1>Unified Broker</h1>
-    <p>Unified Broker is a Python-based project that combines the APIs of Interactive Brokers and Questrade to fetch
+    <h1>Algo Trader</h1>
+    <p>Algo Trader is a Python-based project that combines the APIs of Interactive Brokers and Questrade to fetch
         historical and real-time stock and crypto data. This project aims to provide a unified interface to interact
         with multiple brokerage APIs, allowing users to easily fetch and analyze data.</p>
     <h2>Overview</h2>
@@ -30,7 +30,7 @@
             of the <code>Bot</code> class and provides an interface to monitor and control their actions.</li>
     </ol>
     <h2>Getting Started</h2>
-    <p>To get started with the Unified Broker project, follow these steps:</p>
+    <p>To get started with the Algo Trader project, follow these steps:</p>
     <ol>
         <li>Install the required Python packages:
             <pre><code>pip install pandas ib_insync psycopg2 requests</code></pre>
