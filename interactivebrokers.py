@@ -30,12 +30,12 @@ class InteractiveBrokers:
         contract = Crypto(symbol, 'PAXOS', 'USD')
         self.ib.qualifyContracts(contract)
         
-        total_seconds = int((end_date - start_date).total_seconds())
-        
+        total_days = (end_date - start_date).days
+
         bars = self.ib.reqHistoricalData(
             contract,
             endDateTime=end_date,
-            durationStr='{} D'.format(total_seconds),
+            durationStr='{} D'.format(total_days),
             barSizeSetting='1 min',
             whatToShow='AGGTRADES',
             useRTH=True
@@ -61,35 +61,58 @@ class InteractiveBrokers:
         )
         return util.df(bars)
 
-    
-    def fetch_realtime_crypto_bars(self, symbol, start_date, end_date):
+    def process_realtime_crypto_bar(self, bar, contract):
+        print(f'Real-time bar: {bar.date} {contract.localSymbol} {bar.close}')
+
+    def fetch_realtime_crypto_bars(self, symbol):
         contract = Crypto(symbol, 'PAXOS', 'USD')
         self.ib.qualifyContracts(contract)
-        bars = self.ib.reqHistoricalData(
-            contract,
-            endDateTime=end_date,
-            durationStr='{} D'.format((end_date - start_date).days),
-            barSizeSetting='1 min',
-            whatToShow='AGGTRADES',
-            useRTH=True
-        )
-        return util.df(bars)
+
+        bars = self.ib.reqRealTimeBars(contract, 5, 'TRADES', False)
+
+        bars.updateEvent += self.process_realtime_crypto_bar
+        
+        print (bars)
+        return bars
+
+
+
 
     def disconnect(self):
         self.ib.disconnect()
 
-
-#config = {
-#    'host': '127.0.0.1',    
-#    'port': 7497,
-#    'client_id': 1
-#}
+'''
+config = {
+    'host': '127.0.0.1',    
+    'port': 7497,
+    'client_id': 1
+}
 
 #ib = InteractiveBrokers(config)
 #data = ib.fetch_historical_data('MSFT', datetime.datetime(2023, 3, 25), datetime.datetime(2023, 3, 30))
 # print(data)
-#data = ib.fetch_realtime_data('MSFT')
-#util.startLoop()
+#data = ib.fetch_realtime_crypto_bars('BTC', datetime.datetime(2023, 3, 25), datetime.datetime(2023, 3, 30))
 #sleep(120)
 #print (data)
 #ib.disconnect()
+
+# Testing real-time data
+ib = InteractiveBrokers(config)
+util.startLoop()
+
+# Start real-time data streaming
+bars = ib.fetch_realtime_crypto_bars('BTC')
+
+print(bars)
+# Keep the script running to receive real-time data
+try:
+    while True:
+        sleep(1)
+except KeyboardInterrupt:
+    print("\nTerminating real-time data streaming...")
+
+# Cancel the real-time bars subscription
+ib.ib.cancelMktData(bars.contract)
+# Disconnect from Interactive Brokers
+ib.disconnect()
+'''

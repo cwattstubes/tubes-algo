@@ -90,6 +90,9 @@ class Bot:
 
         elif broker == 'ib':
             historicaldata = self.data_feed.get_ib_historical_data(symbol_id, interval)
+        
+        elif broker == 'ib_crypto':
+            historicaldata = self.data_feed.get_ib_historical_crypto_data(symbol_id, interval)
 
         print (historicaldata)
         # Pre-process the historical data using the strategy

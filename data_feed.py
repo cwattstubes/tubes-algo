@@ -211,6 +211,31 @@ class DataFeed:
             print(f"{bot_id} sleeping")
             sleep(5)
 
+    def get_ib_historical_crypto_data(self, symbol, interval):
+        """
+        Grabs historical data for a given Interactive Brokers symbol and interval.
+        """
+        now = datetime.datetime.now(pytz.timezone("America/New_York"))
+        end_time = now 
+        start_time = now - datetime.timedelta(days=7)
+        
+        # Convert interval format to Interactive Brokers format
+        if interval == "OneMinute":
+            ib_interval = "1 min"
+        elif interval == "FiveMinutes":
+            ib_interval = "5 mins"
+        elif interval == "OneHour":
+            ib_interval = "1 hour"
+        elif interval == "OneDay":
+            ib_interval = "1 day"
+        else:
+            raise ValueError("Unsupported interval")
+
+        ib = InteractiveBrokers(self.ibconfig)
+        data = ib.fetch_historical_crypto_data(symbol, start_time, end_time)
+        ib.disconnect()
+
+        return data
 
     def stop(self):
         # Implement code for stopping data feed subscription
