@@ -15,10 +15,11 @@ class DataFeed:
         self.lock = threading.Lock()
         self.symbols = {}
         self.ibconfig = {
-            'host': '127.0.0.1',    
-            'port': 7497,
-            'client_id': 1
+            "host": "127.0.0.1",
+            "port": "7497",
+            "client_id": "404"
         }
+
 
     def subscribe(self, subscriber):
         with self.lock:
@@ -110,12 +111,12 @@ class DataFeed:
             sleep (5)
 
     # Add new methods for Interactive Brokers
-    def get_ib_historical_data(self, symbol, interval):
+    def get_ib_historical_data(self, symbol, interval, bot_id):
         """
         Grabs historical data for a given Interactive Brokers symbol and interval.
         """
         now = datetime.datetime.now(pytz.timezone("America/New_York"))
-        end_time = now 
+        end_time = now - datetime.timedelta(minutes=2) 
         start_time = now - datetime.timedelta(days=7)
         
         # Convert interval format to Interactive Brokers format
@@ -130,7 +131,7 @@ class DataFeed:
         else:
             raise ValueError("Unsupported interval")
 
-        ib = InteractiveBrokers(self.ibconfig)
+        ib = InteractiveBrokers(self.ibconfig, bot_id)
         data = ib.fetch_historical_data(symbol, start_time, end_time)
         ib.disconnect()
 
@@ -168,29 +169,25 @@ class DataFeed:
 
             # If there are no bars yet, start at the current time minus one interval
             if not bars:
-                #end_time = now + datetime.timedelta(hours=1)
                 end_time = now - datetime.timedelta(seconds=now.second)
-                start_time = now - datetime.timedelta(minutes=1)
+                start_time = now - datetime.timedelta(minutes=1,seconds=now.second)
                 last_bar_time = now - datetime.timedelta(minutes=1)
-                print ("AAAA")
+                next_bar_time = last_bar_time + datetime.timedelta(seconds=60)
             else:
                 lastbar = bars[-1]
                 last_candle = datetime.datetime.fromisoformat(str(lastbar['date']))
-                start_time = last_candle
-                end_time = last_candle + datetime.timedelta(minutes=1)
-                #last_bar_time = last_candle
-                print (f"last bar time {last_bar_time}")
+                start_time = last_candle + datetime.timedelta(minutes=1)
+                end_time = last_candle + datetime.timedelta(minutes=2)
+                last_bar_time = datetime.datetime.fromisoformat(str(lastbar['date']))
+                next_bar_time = last_bar_time + datetime.timedelta(minutes=2,seconds=now.second)
 
-            next_bar_time = last_bar_time + datetime.timedelta(seconds=60)
-            #print (f"next bar time {next_bar_time}")
-            #print (f"now {now}")
             if now < next_bar_time:
                 pass
             else:
                 print(f"{bot_id} fetching data from {start_time} to {end_time}")
 
                 # Call IB to get the new bars
-                ib = InteractiveBrokers(self.ibconfig)
+                ib = InteractiveBrokers(self.ibconfig, bot_id)
                 data = ib.fetch_realtime_bars(symbol, start_time, end_time)
                 ib.disconnect()
                 if not data.empty:
@@ -211,13 +208,13 @@ class DataFeed:
             print(f"{bot_id} sleeping")
             sleep(5)
 
-    def get_ib_historical_crypto_data(self, symbol, interval):
+    def get_ib_historical_crypto_data(self, symbol, interval, bot_id):
         """
         Grabs historical data for a given Interactive Brokers symbol and interval.
         """
         now = datetime.datetime.now(pytz.timezone("America/New_York"))
-        end_time = now 
-        start_time = now - datetime.timedelta(days=7)
+        end_time = now - datetime.timedelta(minutes=2)
+        start_time = now - datetime.timedelta(days=2)
         
         # Convert interval format to Interactive Brokers format
         if interval == "OneMinute":
@@ -230,12 +227,84 @@ class DataFeed:
             ib_interval = "1 day"
         else:
             raise ValueError("Unsupported interval")
-
-        ib = InteractiveBrokers(self.ibconfig)
+        #self.ibconfig = self.ibconfig.replace("client_id","{bot_id}")
+        ib = InteractiveBrokers(self.ibconfig, bot_id)
         data = ib.fetch_historical_crypto_data(symbol, start_time, end_time)
         ib.disconnect()
 
         return data
+    
+    def start_ib_crypto_realtimebars(self, symbol, interval, bot_id, callback, stop_event):
+        """
+        Streams real-time bars for a given Interactive Brokers symbol and interval, invoking the callback function for each new bar.
+        """
+
+        asyncio.set_event_loop(asyncio.new_event_loop())
+
+        if bot_id is None:
+            print("Must provide bot ID")
+
+        if symbol not in self.symbols:
+            self.symbols[symbol] = []
+        bars = self.symbols[symbol]
+
+        print("Starting data streaming...")
+        while True and not stop_event.is_set():
+            now = datetime.datetime.now(pytz.timezone("America/New_York")).replace(microsecond=0)
+
+            # Convert interval format to Interactive Brokers format
+            if interval == "OneMinute":
+                ib_interval = "1 min"
+            elif interval == "FiveMinutes":
+                ib_interval = "5 mins"
+            elif interval == "OneHour":
+                ib_interval = "1 hour"
+            elif interval == "OneDay":
+                ib_interval = "1 day"
+            else:
+                raise ValueError("Unsupported interval")
+
+            # If there are no bars yet, start at the current time minus one interval
+            if not bars:
+                end_time = now - datetime.timedelta(seconds=now.second)
+                start_time = now - datetime.timedelta(minutes=1,seconds=now.second)
+                last_bar_time = now - datetime.timedelta(minutes=1)
+                next_bar_time = last_bar_time + datetime.timedelta(seconds=60)
+            else:
+                lastbar = bars[-1]
+                last_candle = datetime.datetime.fromisoformat(str(lastbar['date']))
+                start_time = last_candle + datetime.timedelta(minutes=1)
+                end_time = last_candle + datetime.timedelta(minutes=2)
+                last_bar_time = datetime.datetime.fromisoformat(str(lastbar['date']))
+                next_bar_time = last_bar_time + datetime.timedelta(minutes=2,seconds=now.second)
+
+            
+            if now < next_bar_time:
+                pass
+            else:
+                print(f"{bot_id} fetching data from {start_time} to {end_time}")
+
+                # Call IB to get the new bars
+                ib = InteractiveBrokers(self.ibconfig, bot_id)
+                data = ib.fetch_realtime_crypto_bars(symbol, start_time, end_time)
+                ib.disconnect()
+                if not data.empty:
+                    newbars = data
+
+                    # Invoke the callback function for each new bar
+                    callback(newbars)
+
+                    # Append the new bars to the existing list
+                    bars.extend(newbars.to_dict('records'))
+
+                    last_bar_time = newbars.iloc[-1]['date']
+                else:
+                    print("No data returned")
+                    sleep(60)
+
+            # Sleep until the next interval
+            print(f"{bot_id} sleeping")
+            sleep(5)
 
     def stop(self):
         # Implement code for stopping data feed subscription

@@ -83,18 +83,19 @@ class Bot:
         broker = self.config['broker_name']
 
         asyncio.set_event_loop(asyncio.new_event_loop())
+
+        
         # Get historical data for the symbol and interval
 
         if broker == 'qt':
             historicaldata = self.data_feed.get_qt_historical_data(symbol_id, interval)
 
         elif broker == 'ib':
-            historicaldata = self.data_feed.get_ib_historical_data(symbol_id, interval)
+            historicaldata = self.data_feed.get_ib_historical_data(symbol_id, interval, bot_id)
         
         elif broker == 'ib_crypto':
-            historicaldata = self.data_feed.get_ib_historical_crypto_data(symbol_id, interval)
+            historicaldata = self.data_feed.get_ib_historical_crypto_data(symbol_id, interval, bot_id)
 
-        print (historicaldata)
         # Pre-process the historical data using the strategy
         self.strategy.process_historical_data(historicaldata)
     
@@ -109,6 +110,8 @@ class Bot:
         elif broker == 'ib':
             self.data_feed.start_ib_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
 
+        elif broker == 'ib_crypto':
+            self.data_feed.start_ib_crypto_realtimebars(symbol_id, interval, bot_id, self.process_data, self.stop_event)
 
     """
     stop a bot

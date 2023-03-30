@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import ta
 
+### This isn't really a SMA cross
+
 class SMACrossover(Strategy):
     def __init__(self, config, bot):
         super().__init__(config)
@@ -21,7 +23,6 @@ class SMACrossover(Strategy):
 
     def process_data(self, data, in_trade):
         self.newbar = pd.DataFrame(data)
-        print (self.newbar)
         signal = self.calculate_signal(self.historical_data, self.newbar, in_trade)
 
         if signal == 'buy':
@@ -33,6 +34,7 @@ class SMACrossover(Strategy):
          
 
         self.historical_data = pd.concat([self.historical_data, self.newbar], ignore_index=True)
+        #print (self.historical_data.tail(5))
     
     def calculate_signal(self, historical_data, newbar, in_trade):
         # Calculate signal based on strategy

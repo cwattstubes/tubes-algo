@@ -5,8 +5,9 @@ from time import sleep
 
 
 class InteractiveBrokers:
-    def __init__(self, config):
+    def __init__(self, config, bot_id):
         self.ib = IB()
+        config["client_id"] = bot_id
         self.ib.connect(config['host'], config['port'], config['client_id'])
 
     def fetch_historical_data(self, symbol, start_date, end_date):
@@ -29,7 +30,6 @@ class InteractiveBrokers:
     def fetch_historical_crypto_data(self, symbol, start_date, end_date):
         contract = Crypto(symbol, 'PAXOS', 'USD')
         self.ib.qualifyContracts(contract)
-        
         total_days = (end_date - start_date).days
 
         bars = self.ib.reqHistoricalData(
@@ -48,8 +48,6 @@ class InteractiveBrokers:
 
         self.ib.qualifyContracts(contract)
         total_min = int((end_date - start_date).total_seconds())
-        print (total_min)
-        print (end_date)
         bars = self.ib.reqHistoricalData(
             contract,
             endDateTime=end_date,
@@ -64,16 +62,21 @@ class InteractiveBrokers:
     def process_realtime_crypto_bar(self, bar, contract):
         print(f'Real-time bar: {bar.date} {contract.localSymbol} {bar.close}')
 
-    def fetch_realtime_crypto_bars(self, symbol):
+    def fetch_realtime_crypto_bars(self, symbol, start_date, end_date):
         contract = Crypto(symbol, 'PAXOS', 'USD')
-        self.ib.qualifyContracts(contract)
-
-        bars = self.ib.reqRealTimeBars(contract, 5, 'TRADES', False)
-
-        bars.updateEvent += self.process_realtime_crypto_bar
         
-        print (bars)
-        return bars
+        self.ib.qualifyContracts(contract)
+        total_min = int((end_date - start_date).total_seconds())
+        bars = self.ib.reqHistoricalData(
+            contract,
+            endDateTime=end_date,
+            durationStr='{} S'.format(total_min),
+            barSizeSetting='1 min',
+            whatToShow='AGGTRADES',
+            useRTH=True,
+            keepUpToDate=False
+        )
+        return util.df(bars)
 
 
 
