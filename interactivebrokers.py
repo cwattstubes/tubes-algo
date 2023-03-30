@@ -8,7 +8,7 @@ class InteractiveBrokers:
     def __init__(self, config, bot_id):
         self.ib = IB()
         config["client_id"] = bot_id
-        self.ib.connect(config['host'], config['port'], config['client_id'])
+        self.ib.connect(config['host'], config['port'], config['client_id'], timeout=5)
 
     def fetch_historical_data(self, symbol, start_date, end_date):
         contract = Stock(symbol, 'SMART', 'USD')
@@ -64,7 +64,7 @@ class InteractiveBrokers:
 
     def fetch_realtime_crypto_bars(self, symbol, start_date, end_date):
         contract = Crypto(symbol, 'PAXOS', 'USD')
-        
+
         self.ib.qualifyContracts(contract)
         total_min = int((end_date - start_date).total_seconds())
         bars = self.ib.reqHistoricalData(

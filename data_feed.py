@@ -104,10 +104,10 @@ class DataFeed:
                     # Append the new bars to the existing list
                     bars.extend(newbars.to_dict('records'))
                 else:
-                    print("No data returned")   
-                    sleep (60)
+                    print(f"{bot_id} No data returned")   
+                    sleep (30)
             # Sleep until the next interval
-            print (f" {bot_id} sleeping")
+            #print (f" {bot_id} sleeping")
             sleep (5)
 
     # Add new methods for Interactive Brokers
@@ -201,11 +201,11 @@ class DataFeed:
 
                     last_bar_time = newbars.iloc[-1]['date']
                 else:
-                    print("No data returned")
-                    sleep(60)
+                    print(f"{bot_id} No data returned")
+                    sleep(30)
 
             # Sleep until the next interval
-            print(f"{bot_id} sleeping")
+            #print(f"{bot_id} sleeping")
             sleep(5)
 
     def get_ib_historical_crypto_data(self, symbol, interval, bot_id):
@@ -299,11 +299,11 @@ class DataFeed:
 
                     last_bar_time = newbars.iloc[-1]['date']
                 else:
-                    print("No data returned")
-                    sleep(60)
+                    print(f"{bot_id} No data returned")
+                    sleep(30)
 
             # Sleep until the next interval
-            print(f"{bot_id} sleeping")
+            #print(f"{bot_id} sleeping")
             sleep(5)
 
     def stop(self):

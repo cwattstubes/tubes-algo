@@ -138,11 +138,18 @@ class QtAPI:
         request_url = self._token.get_api_server() + endpoint
         response = requests.get(request_url, headers=self._get_headers())
         
-        if response:
-            print ("Request succeeded")
+        if response.status_code == 200:
+            #print ("Request succeeded")
+            pass
         else:
-            print("Request failed: {0}".format(response.status_code))
-            
+            print("Request failed - Retying: {0}".format(response.status_code))
+            Token(self._config_id)._refresh()
+            Token(self._config_id)._load()
+            response = requests.get(request_url, headers=self._get_headers())
+            if response == 200:
+                pass
+            else:
+                print("Request failed again: {0}".format(response.status_code))
         return response.json()
     
     def get_name(self):
