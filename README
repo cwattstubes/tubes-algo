@@ -1,0 +1,74 @@
+Unified Broker
+Unified Broker is a Python-based project that combines the APIs of Interactive Brokers and Questrade to fetch historical and real-time stock and crypto data. This project aims to provide a unified interface to interact with multiple brokerage APIs, allowing users to easily fetch and analyze data.
+
+Overview
+This project consists of several Python files:
+
+main.py: The main entry point of the application, responsible for initializing and running the desired functions based on the user's input.
+config.py: Contains the configuration settings for the application, such as database credentials and brokerage API details.
+database.py: Provides an interface to interact with a PostgreSQL database, allowing for the storage and retrieval of configuration and data.
+interactivebrokers.py: Contains the InteractiveBrokers class, which provides methods to fetch historical and real-time data for stocks and cryptocurrencies using the Interactive Brokers API.
+questrade.py: Contains the Questrade class, which provides methods to fetch historical and real-time data for stocks and cryptocurrencies using the Questrade API.
+bot.py: Contains the Bot class, which is responsible for handling trading strategies and managing orders using the specified brokerage API.
+bot_manager.py: Contains the BotManager class, which manages multiple instances of the Bot class and provides an interface to monitor and control their actions.
+Getting Started
+To get started with the Unified Broker project, follow these steps:
+
+Install the required Python packages:
+
+Copy code
+pip install pandas ib_insync psycopg2 requests
+Set up a PostgreSQL database and configure the connection settings in config.py.
+
+Obtain the necessary API credentials for Interactive Brokers and Questrade, and configure the settings in config.py.
+
+Run the main.py script to start the application:
+
+Usage
+Once the application is running, you can use the provided methods in the InteractiveBrokers, Questrade, Bot, and BotManager classes to fetch historical and real-time data for stocks and cryptocurrencies, manage trading strategies, and monitor bot performance.
+
+Example usage:
+
+python
+Copy code
+from datetime import datetime, timedelta
+from interactivebrokers import InteractiveBrokers
+from questrade import Questrade
+from bot import Bot
+from bot_manager import BotManager
+
+# Interactive Brokers example
+ib_config = {
+    'host': '127.0.0.1',
+    'port': 7497,
+    'client_id': 1
+}
+ib = InteractiveBrokers(ib_config, bot_id=1)
+symbol = 'AAPL'
+start_date = datetime.now() - timedelta(days=7)
+end_date = datetime.now()
+
+historical_data = ib.fetch_historical_data(symbol, start_date, end_date)
+print(historical_data)
+
+# Questrade example
+qt_config_id = 1
+qt = Questrade(qt_config_id)
+
+symbol_id = qt.get_symbol(symbol)['symbols'][0]['symbolId']
+candles_data = qt.get_candles(symbol_id, start_date.isoformat(), end_date.isoformat(), interval='OneDay')
+print(candles_data)
+
+# Bot example
+bot1 = Bot(1, ib)
+bot1.run_strategy()
+
+# Bot Manager example
+bot_manager = BotManager()
+bot_manager.add_bot(bot1)
+bot_manager.start_all_bots()
+Contributing
+If you would like to contribute to the project, please submit a pull request or open an issue to discuss your proposed changes. We welcome any suggestions or improvements to make this project more useful and versatile.
+
+License
+This project is released under the MIT License.
