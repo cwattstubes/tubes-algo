@@ -4,6 +4,7 @@ import io
 from typing import List
 from database import Database
 from config import *
+from logger import logger
 
 from ratelimit import limits, sleep_and_retry
 import time
@@ -143,7 +144,7 @@ class avClient:
                 df = self._get_data(params)
                 data.append(df)
             except requests.exceptions.RequestException as e:
-                print(f"Request failed with error {e}")
+                logger.error(f"Request failed with error {e}")
         return pd.concat(data)
     
     def intraday_extended_streaming(self, symbol, interval, months):
@@ -174,7 +175,7 @@ class avClient:
                         'volume': 'volume'})
                 yield df
             except requests.exceptions.RequestException as e:
-                print(f"Request failed with error {e}")
+                logger.error(f"Request failed with error {e}")
 
     
     

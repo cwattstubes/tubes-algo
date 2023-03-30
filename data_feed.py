@@ -6,6 +6,7 @@ from interactivebrokers import InteractiveBrokers
 from time import sleep
 import pytz
 import asyncio
+from logger import logger
 
 class DataFeed:
 
@@ -32,7 +33,7 @@ class DataFeed:
                 self.subscribers.remove(subscriber)
 
     def notify(self, bot_id, data):
-        print(f"Notify called for bot ID: {bot_id}")
+        logger.warning(f"Notify called for bot ID: {bot_id}")
         with self.lock:
             for subscriber in self.subscribers:
                 subscriber.process_data(bot_id, data)
@@ -59,13 +60,13 @@ class DataFeed:
         Streams real-time bars for a given Questrade symbol ID and interval, invoking the callback function for each new bar.
         """
         if bot_id is None:
-            print ("Must provide bot ID")
+            logger.error("Must provide bot ID")
 
         if qt_id not in self.symbols:
             self.symbols[qt_id] = []
         bars = self.symbols[qt_id]
         
-        print("Starting data streaming...")
+        logger.warning("Starting data streaming...")
         while True and not stop_event.is_set():
             now = datetime.datetime.now(pytz.timezone("America/New_York"))
             # If there are no bars yet, start at the current time minus one interval
@@ -104,7 +105,7 @@ class DataFeed:
                     # Append the new bars to the existing list
                     bars.extend(newbars.to_dict('records'))
                 else:
-                    print(f"{bot_id} No data returned")   
+                    logger.warning(f"{bot_id} No data returned")   
                     sleep (30)
             # Sleep until the next interval
             #print (f" {bot_id} sleeping")
@@ -145,13 +146,13 @@ class DataFeed:
         asyncio.set_event_loop(asyncio.new_event_loop())
 
         if bot_id is None:
-            print("Must provide bot ID")
+            logger.error("Must provide bot ID")
 
         if symbol not in self.symbols:
             self.symbols[symbol] = []
         bars = self.symbols[symbol]
 
-        print("Starting data streaming...")
+        logger.warning("Starting data streaming...")
         while True and not stop_event.is_set():
             now = datetime.datetime.now(pytz.timezone("America/New_York")).replace(microsecond=0)
 
@@ -184,7 +185,7 @@ class DataFeed:
             if now < next_bar_time:
                 pass
             else:
-                print(f"{bot_id} fetching data from {start_time} to {end_time}")
+                logger.info(f"{bot_id} fetching data from {start_time} to {end_time}")
 
                 # Call IB to get the new bars
                 ib = InteractiveBrokers(self.ibconfig, bot_id)
@@ -201,7 +202,7 @@ class DataFeed:
 
                     last_bar_time = newbars.iloc[-1]['date']
                 else:
-                    print(f"{bot_id} No data returned")
+                    logger.warning(f"{bot_id} No data returned")
                     sleep(30)
 
             # Sleep until the next interval
@@ -242,13 +243,13 @@ class DataFeed:
         asyncio.set_event_loop(asyncio.new_event_loop())
 
         if bot_id is None:
-            print("Must provide bot ID")
+            logger.error("Must provide bot ID")
 
         if symbol not in self.symbols:
             self.symbols[symbol] = []
         bars = self.symbols[symbol]
 
-        print("Starting data streaming...")
+        logger.warning("Starting data streaming...")
         while True and not stop_event.is_set():
             now = datetime.datetime.now(pytz.timezone("America/New_York")).replace(microsecond=0)
 
@@ -282,7 +283,7 @@ class DataFeed:
             if now < next_bar_time:
                 pass
             else:
-                print(f"{bot_id} fetching data from {start_time} to {end_time}")
+                logger.info(f"{bot_id} fetching data from {start_time} to {end_time}")
 
                 # Call IB to get the new bars
                 ib = InteractiveBrokers(self.ibconfig, bot_id)
@@ -299,7 +300,7 @@ class DataFeed:
 
                     last_bar_time = newbars.iloc[-1]['date']
                 else:
-                    print(f"{bot_id} No data returned")
+                    logger.warning(f"{bot_id} No data returned")
                     sleep(30)
 
             # Sleep until the next interval

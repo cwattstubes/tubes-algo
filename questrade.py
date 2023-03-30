@@ -3,9 +3,12 @@ import requests
 from datetime import datetime
 from datetime import timedelta
 import json
-
+import logging
+from logger import logger
 from database import *
 from config import *
+
+logger.setLevel(logging.INFO)
 
 db = Database(dbname, dbuser, dbpassword, dbhost, dbport)
 
@@ -37,20 +40,20 @@ class Token:
         if self._registration is None:
             self._registration = {}
         if not self._is_registered() or self._is_refresh_expired():
-            print("Token must be registered")
+            logger.warning("Token must be registered")
             self._register()
         elif self._is_expired():
-            print("Token is expired")
+            logger.warning("Token is expired")
             self._refresh()
 
 
     def _load(self):
         self._registration = TokenStorage.readconfig(self._config_id)
         if not self._is_registered() or self._is_refresh_expired():
-            print("Token must be registered")
+            logger.warning("Token must be registered")
             self._register()
         elif self._is_expired():
-            print("Token is expired")
+            logger.warning("Token is expired")
             self._refresh()
 
     def _register(self):
@@ -67,7 +70,7 @@ class Token:
         self._refresh_token_url = self.get_auth_server()
         endpoint = self._refresh_token_url + '/oauth2/token?grant_type=refresh_token&refresh_token=' + token
         response = requests.get(endpoint)
-        print(response)
+        logger.info(response)
         return response.json()
 
     def _set_registration(self, new_registration):
@@ -123,7 +126,7 @@ class Token:
         while True:
             manual_token = input("Enter the manually generated token: ").strip()
             if len(manual_token) < 24:  # general test.
-                print("The token is not valid, please try again")
+                logger.warning("The token is not valid, please try again")
             else:
                 return manual_token
 
@@ -139,17 +142,17 @@ class QtAPI:
         response = requests.get(request_url, headers=self._get_headers())
         
         if response.status_code == 200:
-            #print ("Request succeeded")
+            #logger.warning ("Request succeeded")
             pass
         else:
-            print("Request failed - Retying: {0}".format(response.status_code))
+            logger.warning("Request failed - Retying: {0}".format(response.status_code))
             Token(self._config_id)._refresh()
             Token(self._config_id)._load()
             response = requests.get(request_url, headers=self._get_headers())
             if response == 200:
                 pass
             else:
-                print("Request failed again: {0}".format(response.status_code))
+                logger.warning("Request failed again: {0}".format(response.status_code))
         return response.json()
     
     def get_name(self):
@@ -209,7 +212,7 @@ class Questrade(QtAPI):
 
     def get_candles(self, id, start_time, end_time, interval):
         endpoint = "{0}/markets/candles/{1}?startTime={2}&endTime={3}&interval={4}".format(Questrade.API_VERSION, id, start_time, end_time, interval)
-        print (endpoint)
+        logger.info (endpoint)
         return super().api_get(endpoint)
     
     def get_socket(self):
@@ -218,7 +221,7 @@ class Questrade(QtAPI):
     
     def get_sockets(self,ids):
         endpoint = '{0}/markets/quotes/?ids={1}&stream=true&mode=WebSocket'.format(Questrade.API_VERSION, ids)
-        print (endpoint)
+        logger.info (endpoint)
         return super().api_get(endpoint)
     
     def get_symbol_data(self,id):
