@@ -89,7 +89,7 @@ class DatabaseAdmin:
             bot_id SERIAL PRIMARY KEY,
             bot_name TEXT UNIQUE,
             strategy_name TEXT,
-            symbol_id INT,
+            symbol_id TEXT,
             account_id TEXT,
             broker_name TEXT,
             active BOOLEAN DEFAULT FALSE,
