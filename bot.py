@@ -2,6 +2,7 @@ import questrade as qt
 from database import *
 from config import *
 from data_feed import *
+from logger import logger
 import threading
 import importlib
 import asyncio
@@ -35,7 +36,7 @@ class Bot:
             strategy_class = getattr(strategy_module, self.strategy_name)
             self.strategy = strategy_class(self.config, self)
         except Exception as e:
-            print(f"Error loading strategy {self.strategy_name}: {e}")
+            logger.error(f"Error loading strategy {self.strategy_name}: {e}")
             self.strategy = None
 
     def set_strategy(self, strategy):
@@ -64,7 +65,7 @@ class Bot:
         if self.strategy:
             self.strategy.process_data(data, self.in_trade)
         else:
-            print("No strategy set for this bot")
+            logger.error("No strategy set for this bot")
         # Do something with the incoming data, using the strategy and broker as needed
         #print (f"{self.config['bot_id']} {data}")
         pass
@@ -73,7 +74,7 @@ class Bot:
     start a bot
     """
     def start(self):
-        print(f"Starting bot with ID: {self.config['bot_id']}")
+        logger.warning(f"Starting bot with ID: {self.config['bot_id']}")
         
         #self.load_strategy()
         # Get symbol_id, interval, and bot_id from the bot configuration
@@ -101,7 +102,7 @@ class Bot:
     
         # Set the bot status to active in the database
         self.database.set_bot_status(self.config['bot_id'], 'true')
-        print(f"Started bot with ID: {self.config['bot_id']}")
+        logger.warning(f"Started bot with ID: {self.config['bot_id']}")
 
         # Start the data feed for this bot
         if broker == 'qt':
@@ -117,7 +118,7 @@ class Bot:
     stop a bot
     """
     def stop(self):
-        print(f"Stopping bot with ID: {self.config['bot_id']}")
+        logger.warning(f"Stopping bot with ID: {self.config['bot_id']}")
         """
         Stop the running bot
         """
@@ -125,6 +126,6 @@ class Bot:
 
         # Set the bot status to inactive in the database
         self.database.set_bot_status(self.config['bot_id'], 'false')
-        print(f"Stopped bot with ID: {self.config['bot_id']}")
+        logger.warning(f"Stopped bot with ID: {self.config['bot_id']}")
 
 

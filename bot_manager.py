@@ -1,6 +1,6 @@
 import os
 import sys
-
+from logger import logger
 
 from database import Database
 from config import *
@@ -30,16 +30,16 @@ class BotManager:
             bot = Bot(bot_config, self.database)
             bot.subscribe_to_data_feed(self.data_feed)
             self.bots.append(bot)
-            print(f"Bot loaded: {bot.config['bot_id']}")
+            logger.warning(f"Bot loaded: {bot.config['bot_id']}")
 
     def start_all_bots(self):
-        print(f"Starting all {len(self.bots)} bots...")
+        logger.warning(f"Starting all {len(self.bots)} bots...")
         self.bot_threads = []
         for bot in self.bots:
             bot_thread = threading.Thread(target=bot.start)  # Create a new thread for the bot
             self.bot_threads.append(bot_thread)
             bot_thread.start()  # Start the thread
-            print(f"Bot with ID: {bot.config['bot_id']} started in a new thread.")  # Print a message to confirm
+            logger.warning(f"Bot with ID: {bot.config['bot_id']} started in a new thread.")  # Print a message to confirm
                 
     def stop_all_bots(self):
         for bot in self.bots:
@@ -83,7 +83,7 @@ class BotManager:
                 self.bot_threads.append(bot_thread)
                 bot_thread.start()  # Start the thread
 
-                print(f"Bot with ID: {bot_id} started in a new thread.")  # Print a message to confirm
+                logger.warning(f"Bot with ID: {bot_id} started in a new thread.")  # Print a message to confirm
                 return True
         return False
 
@@ -95,9 +95,8 @@ bot_manager = BotManager(db, data_feed)
 bot_manager.start_all_bots()
 
 for bot in bot_manager.bots:
-    print(f"Bot ID: {bot.config['bot_id']}, Bot Name: {bot.config['bot_name']}, Strategy: {bot.config['strategy_name']}")
+    logger.warning(f"Bot ID: {bot.config['bot_id']}, Bot Name: {bot.config['bot_name']}, Strategy: {bot.config['strategy_name']}")
 
-sleep (10)
 
 #bot_manager.stop_bot(1)
 

@@ -3,13 +3,15 @@ import datetime
 from database import Database
 from time import sleep
 
+from logger import logger
+
 
 class InteractiveBrokers:
     def __init__(self, config, bot_id):
         self.ib = IB()
         config["client_id"] = bot_id
         self.ib.connect(config['host'], config['port'], config['client_id'], timeout=5)
-
+        
     def fetch_historical_data(self, symbol, start_date, end_date):
         contract = Stock(symbol, 'SMART', 'USD')
 
@@ -60,7 +62,7 @@ class InteractiveBrokers:
         return util.df(bars)
 
     def process_realtime_crypto_bar(self, bar, contract):
-        print(f'Real-time bar: {bar.date} {contract.localSymbol} {bar.close}')
+        self.iblogger.warning(f'Real-time bar: {bar.date} {contract.localSymbol} {bar.close}')
 
     def fetch_realtime_crypto_bars(self, symbol, start_date, end_date):
         contract = Crypto(symbol, 'PAXOS', 'USD')
