@@ -220,6 +220,13 @@ class Database:
             row = cur.fetchone()
         return row
 
+    def get_running_bots(self):
+        query = "SELECT bot_id, bot_name, strategy_name FROM bot_config WHERE active = true"
+        with self.conn.cursor() as cur:
+            cur.execute(query)
+            rows = cur.fetchall()
+        return rows
+    
 #    def get_config(self, name):
 #        query = "SELECT * FROM config WHERE name = %s"
 #        params = (name,)

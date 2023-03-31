@@ -1,4 +1,6 @@
-from strategies.strategybase import Strategy
+from .strategybase import Strategy
+#from logger import logger
+
 import pandas as pd
 import numpy as np
 import ta
@@ -6,8 +8,8 @@ import ta
 ### This isn't really a SMA cross
 
 class SMACrossover(Strategy):
-    def __init__(self, config, bot):
-        super().__init__(config)
+    def __init__(self, config, bot, logger):
+        super().__init__(config, logger)
         self.short_window = config.get('short_window', 10)
         self.long_window = config.get('long_window', 30)
         self.prices = []
@@ -52,8 +54,10 @@ class SMACrossover(Strategy):
 
     def buy_signal(self):
         print(f"{self.config['bot_name']} Buy signal")
+        self.logger.warning(f"{self.config['bot_name']} Buy signal")
         self.bot.place_order('buy', True)
 
     def sell_signal(self):
         print(f"{self.config['bot_name']} Sell signal")
+        self.logger.warning(f"{self.config['bot_name']} Sell signal")
         self.bot.place_order('sell', False)

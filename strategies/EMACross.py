@@ -1,13 +1,14 @@
-from strategies.strategybase import Strategy
+from .strategybase import Strategy
+
 
 import pandas as pd
 import numpy as np
 
 class EMACross(Strategy):
-    def __init__(self, config, bot):
-        super().__init__(config)
-        self.short_window = config.get('short_window', 12)
-        self.long_window = config.get('long_window', 26)
+    def __init__(self, config, bot, logger):
+        super().__init__(config, logger)
+        self.short_window = config.get('short_window', 7)
+        self.long_window = config.get('long_window', 14)
         self.prices = []
         self.buy_price = None
         self.historical_data = pd.DataFrame()
@@ -47,8 +48,10 @@ class EMACross(Strategy):
 
     def buy_signal(self):
         print(f"{self.config['bot_name']} Buy signal")
+        self.logger.warning(f"{self.config['bot_name']} Buy signal")
         self.bot.place_order('buy', True)
 
     def sell_signal(self):
         print(f"{self.config['bot_name']} Sell signal")
+        self.logger.warning(f"{self.config['bot_name']} Sell signal")
         self.bot.place_order('sell', False)

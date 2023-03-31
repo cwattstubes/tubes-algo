@@ -1,14 +1,14 @@
-from strategies.strategybase import Strategy
+from .strategybase import Strategy
 import pandas as pd
 import numpy as np
 from ta.momentum import RSIIndicator
 
 class RsiMeanReversion(Strategy):
-    def __init__(self, config, bot):
-        super().__init__(config)
+    def __init__(self, config, bot, logger):
+        super().__init__(config, logger)
         self.rsi_period = config.get('rsi_period', 14)
-        self.oversold_threshold = config.get('oversold_threshold', 30)
-        self.overbought_threshold = config.get('overbought_threshold', 70)
+        self.oversold_threshold = config.get('oversold_threshold', 40)
+        self.overbought_threshold = config.get('overbought_threshold', 60)
         self.historical_data = pd.DataFrame()
         self.bot = bot
 
@@ -42,8 +42,10 @@ class RsiMeanReversion(Strategy):
 
     def buy_signal(self):
         print(f"{self.config['bot_name']} Buy signal")
+        self.logger.warning(f"{self.config['bot_name']} Buy signal")
         self.bot.place_order('buy', True)
 
     def sell_signal(self):
         print(f"{self.config['bot_name']} Sell signal")
+        self.logger.warning(f"{self.config['bot_name']} Sell signal")
         self.bot.place_order('sell', False)

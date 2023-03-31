@@ -5,24 +5,95 @@
   </head>
   <body>
     <h1>Bot Control Panel</h1>
-    <form action="/start_all_bots" method="post">
-      <button type="submit">Start all bots</button>
-    </form>
-    <form action="/stop_all_bots" method="post">
-      <button type="submit">Stop all bots</button>
-    </form>
+    <button onclick="startAllBots()">Start all bots</button>
+    <button onclick="stopAllBots()">Stop all bots</button>
+    <button onclick="startBot()">Start bot by ID</button>
+    <button onclick="stopBot()">Stop bot by ID</button>
     <hr>
+    <h2>Bot Status</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Strategy</th>
+        </tr>
+      </thead>
+      <tbody id="running_bots">
+      </tbody>
+    </table>
+    <script>
+    function updateRunningBots() {
+      fetch('/running_bots')
+        .then(response => response.json())
+        .then(data => {
+          const runningBotsElement = document.getElementById('running_bots');
+          runningBotsElement.innerHTML = data
+            .map(
+              (bot) =>
+                `<tr><td>${bot.id}</td><td>${bot.name}</td><td>${bot.strategy}</td></tr>`
+            )
+            .join("");
+        });
+    }
+
+    // Call updateRunningBots when the page loads and after starting/stopping bots
+    updateRunningBots();
+    setInterval(updateRunningBots, 5000);
+    </script>
     <h2>Console Output</h2>
     <div id="console_output"></div>
-    <script>
-      const source = new EventSource("/console_output");
-      source.onmessage = function(event) {
-          // Update the console output element with the new message
-          const consoleOutput = document.getElementById("console-output");
-          consoleOutput.textContent += event.data + "\n";
-      };
+    <h2>Log File</h2>
+    <pre id="log_file"></pre>
 
+    <script>
+      let lastMtime = null;
+
+      function updateLogFile() {
+        fetch('/get_log_file')
+          .then(response => response.json())
+          .then(data => {
+            if (data.mtime !== lastMtime) {
+              const logFileElement = document.getElementById('log_file');
+              logFileElement.textContent = data.content;
+              lastMtime = data.mtime;
+            }
+          });
+      }
+
+      // Call updateLogFile when the page loads
+      updateLogFile();
+
+      // Update the log file content every 5 seconds
+      setInterval(updateLogFile, 5000);
+    </script>
+    <script>
+      
+      function startBot() {
+        const botId = prompt("Enter the bot ID to start:");
+        if (botId) {
+          fetch(`/start_bot/${botId}`, { method: "POST" })
+            .then(() => updateRunningBots());
+        }
+      }
+
+      function stopBot() {
+        const botId = prompt("Enter the bot ID to stop:");
+        if (botId) {
+          fetch(`/stop_bot/${botId}`, { method: "POST" })
+            .then(() => updateRunningBots());
+        }
+      }
+      
+      function startAllBots() {
+        fetch('/start_all_bots', { method: 'POST' })
+          .then(() => updateRunningBots());
+      }
+
+      function stopAllBots() {
+        fetch('/stop_all_bots', { method: 'POST' })
+          .then(() => updateRunningBots());
+      }
     </script>
   </body>
 </html>
-

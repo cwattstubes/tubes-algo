@@ -34,7 +34,7 @@ class Bot:
         try:
             strategy_module = importlib.import_module(f"strategies.{self.strategy_name}")
             strategy_class = getattr(strategy_module, self.strategy_name)
-            self.strategy = strategy_class(self.config, self)
+            self.strategy = strategy_class(self.config, self, logger)
         except Exception as e:
             logger.error(f"Error loading strategy {self.strategy_name}: {e}")
             self.strategy = None
@@ -75,7 +75,7 @@ class Bot:
     """
     def start(self):
         logger.warning(f"Starting bot with ID: {self.config['bot_id']}")
-        
+        self.stop_event.clear()
         #self.load_strategy()
         # Get symbol_id, interval, and bot_id from the bot configuration
         symbol_id = self.config['symbol_id']

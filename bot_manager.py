@@ -17,6 +17,7 @@ class BotManager:
         self.database = database
         self.bots = []
         self.data_feed = data_feed
+        self.bot_threads = []
         self.load_bots()
 
     def load_bots(self):
@@ -44,7 +45,10 @@ class BotManager:
     def stop_all_bots(self):
         for bot in self.bots:
             bot.stop()
-            
+        # Wait for all threads to terminate
+        for bot_thread in self.bot_threads:
+            bot_thread.join() 
+        logger.warning(f"All {len(self.bots)} bots stopped.")
     def restart_all_bots(self):
         self.stop_all_bots()
         self.start_all_bots()
@@ -55,6 +59,10 @@ class BotManager:
                 return bot
         return None
 
+    def get_running_bots(self):
+        running_bots = self.database.get_running_bots()
+        return [{'id': bot_id, 'name': bot_name, 'strategy': strategy_name} for bot_id, bot_name, strategy_name in running_bots]
+    
     def stop_bot(self, bot_id):
         bot = self.get_bot(bot_id)
         if bot is not None:
@@ -86,6 +94,8 @@ class BotManager:
                 logger.warning(f"Bot with ID: {bot_id} started in a new thread.")  # Print a message to confirm
                 return True
         return False
+
+
 '''
 #db.set_bot_config('my_bot_4', 'FU', '3', '11111', 'paper')
 bot_config = db.get_bot_config_id('1')
@@ -97,7 +107,8 @@ bot_manager.start_all_bots()
 for bot in bot_manager.bots:
     logger.warning(f"Bot ID: {bot.config['bot_id']}, Bot Name: {bot.config['bot_name']}, Strategy: {bot.config['strategy_name']}")
 
-
+bleh = bot_manager.get_bot(4)
+print (bleh)
 #bot_manager.stop_bot(1)
 
 #sleep (10)
