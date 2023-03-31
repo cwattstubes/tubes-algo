@@ -9,8 +9,10 @@
     <button onclick="stopAllBots()">Stop all bots</button>
     <button onclick="startBot()">Start bot by ID</button>
     <button onclick="stopBot()">Stop bot by ID</button>
+    <button onclick="reloadBot()">Reload bot Conf</button>
+    <button onclick="restartBot()">Restart bot by ID</button>
     <hr>
-    <h2>Bot Status</h2>
+    <h2>Running Bot Status</h2>
     <table>
       <thead>
         <tr>
@@ -93,6 +95,18 @@
       function stopAllBots() {
         fetch('/stop_all_bots', { method: 'POST' })
           .then(() => updateRunningBots());
+      }
+      function reloadBots() {
+        fetch('/reload_bots', { method: 'POST' })
+          .then(() => updateRunningBots());
+      }
+
+      function restartBot() {
+        const botId = prompt("Enter the bot ID to restart:");
+        if (botId) {
+          fetch(`/restart_bot/${botId}`, { method: "POST" })
+            .then(() => updateRunningBots());
+        }
       }
     </script>
   </body>

@@ -54,7 +54,20 @@ def create_app():
             return f"Stopping bot {bot_id}..."
         else:
             return f"Failed to stop bot {bot_id}.", 400
+        
+    @app.route('/restart_bot/<int:bot_id>', methods=['POST'])
+    def restart_bot(bot_id):
+        success = bot_manager.restart_bot(bot_id)
+        if success:
+            return f"Restarting bot {bot_id}..."
+        else:
+            return f"Failed to restart bot {bot_id}.", 400
 
+    @app.route('/reload_bots', methods=['POST'])
+    def reload_bots():
+        bot_manager.reload_bots()
+        return "Reloading bots..."
+    
     @app.route('/running_bots')
     def running_bots():
         bots = bot_manager.get_running_bots()
