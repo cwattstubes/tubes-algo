@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bot Manager</title>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io.connect('http://' + document.domain + ':' + location.port);
+            
+            socket.on('console_output', (msg) => {
+                // Display msg in the desired area, e.g., a div with id="console"
+                const consoleDiv = document.getElementById('console');
+                consoleDiv.innerHTML += msg + '<br>';
+            });
+        });
+    </script>
+</head>
+<body>
+    <!-- Your other HTML code -->
+
+    <div id="console"></div>
+</body>
+</html>
+

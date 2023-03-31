@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Console Output</title>
+</head>
+<body>
+    <h1>Console Output:</h1>
+    <pre id="console"></pre>
+    <script>
+        var source = new EventSource("/console_output");
+        source.addEventListener('console_output', function(event) {
+            var consoleElement = document.getElementById('console');
+            consoleElement.textContent += event.data + '\n';
+        });
+    </script>
+</body>
+</html>

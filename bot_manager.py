@@ -86,7 +86,7 @@ class BotManager:
                 logger.warning(f"Bot with ID: {bot_id} started in a new thread.")  # Print a message to confirm
                 return True
         return False
-
+'''
 #db.set_bot_config('my_bot_4', 'FU', '3', '11111', 'paper')
 bot_config = db.get_bot_config_id('1')
 
@@ -103,3 +103,4 @@ for bot in bot_manager.bots:
 #sleep (10)
 
 #bot_manager.start_bot(3)
+'''

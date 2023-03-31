@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>My Flask SSE app</title>
+  </head>
+  <body>
+    <h1>Bot Control Panel</h1>
+    <form action="/start_all_bots" method="post">
+      <button type="submit">Start all bots</button>
+    </form>
+    <form action="/stop_all_bots" method="post">
+      <button type="submit">Stop all bots</button>
+    </form>
+    <hr>
+    <h2>Console Output</h2>
+    <div id="console_output"></div>
+    <script>
+      const source = new EventSource("/console_output");
+      source.onmessage = function(event) {
+          // Update the console output element with the new message
+          const consoleOutput = document.getElementById("console-output");
+          consoleOutput.textContent += event.data + "\n";
+      };
+
+    </script>
+  </body>
+</html>
+
