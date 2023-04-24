@@ -79,6 +79,20 @@ class InteractiveBrokers:
             keepUpToDate=False
         )
         return util.df(bars)
+    
+    # Create a function to place a limit order
+    def place_limit_order(self, symbol, quantity, is_buy, limit_price):
+        contract = Stock(symbol, 'SMART', 'USD')
+        self.ib.qualifyContracts(contract)
+        order = self.ib.placeOrder(contract, self.create_limit_order(is_buy, quantity, limit_price))
+        return order
+    
+    # Create a function to place a crypto limit order
+    def place_crypto_limit_order(self, symbol, quantity, is_buy, limit_price):
+        contract = Crypto(symbol, 'PAXOS', 'USD')
+        self.ib.qualifyContracts(contract)
+        order = self.ib.placeOrder(contract, self.create_limit_order(is_buy, quantity, limit_price))
+        return order
 
 
 
